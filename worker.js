@@ -58,6 +58,43 @@ footer{color:#718095;font-size:12px;margin-top:24px;text-align:center;line-heigh
 </section>
 
 <footer>
+  GOLD MASTER AI · DATA SOURCE: XAUS<br>
+  ข้อมูลราคาเพื่อประกอบการศึกษา ไม่ใช่คำแนะนำการลงทุน
+
+  <div style="margin-top:30px;padding-top:20px;border-top:1px solid #293342;">
+    <div style="font-size:10px;letter-spacing:4px;color:#9ba8b8;">
+      CREATED BY
+    </div>
+
+    <svg viewBox="0 0 340 95"
+         style="width:100%;max-width:340px;height:auto;margin:8px auto 0;display:block;"
+         role="img" aria-label="Signature Saharat Chunjun">
+      <text x="170" y="52"
+            text-anchor="middle"
+            fill="#e8bd63"
+            font-size="31"
+            font-family="cursive"
+            font-style="italic"
+            letter-spacing="1">
+        Saharat Chunjun
+      </text>
+      <path d="M38 68 Q120 91 205 69 T302 66"
+            fill="none"
+            stroke="#e8bd63"
+            stroke-width="1.6"
+            stroke-linecap="round"/>
+      <path d="M245 76 Q275 88 310 70"
+            fill="none"
+            stroke="#e8bd63"
+            stroke-width="1"
+            stroke-linecap="round"/>
+    </svg>
+
+    <div style="font-size:10px;letter-spacing:3px;color:#9ba8b8;">
+      GOLD MASTER AI
+    </div>
+  </div>
+</footer>
 GOLD MASTER AI · DATA SOURCE: XAUS<br>
 ข้อมูลราคาเพื่อประกอบการศึกษา ไม่ใช่คำแนะนำการลงทุน
 </footer>
