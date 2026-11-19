@@ -125,7 +125,7 @@ async function loadPrice(){
 
 refreshBtn.addEventListener("click",loadPrice);
 loadPrice();
-setInterval(loadPrice,15000);
+setInterval(loadPrice,5000);
 </script>
 </body>
 </html>`;
