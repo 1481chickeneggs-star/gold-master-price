@@ -54,6 +54,7 @@ footer{color:#718095;font-size:12px;margin-top:24px;text-align:center;line-heigh
 </div>
 
 <p class="muted" id="updated">รอข้อมูลราคา</p>
+<p class="muted" id="checked">ตรวจสอบล่าสุด: กำลังรอข้อมูล</p>
 <button id="refresh">อัปเดตราคา</button>
 </section>
 
@@ -106,6 +107,7 @@ const gramEl=document.getElementById("gram");
 const ratioEl=document.getElementById("ratio");
 const statusEl=document.getElementById("status");
 const updatedEl=document.getElementById("updated");
+const checkedEl=document.getElementById("checked");
 const refreshBtn=document.getElementById("refresh");
 
 function fmt(value,digits=2){
@@ -119,6 +121,7 @@ async function loadPrice(){
   refreshBtn.disabled=true;
   statusEl.textContent="กำลังเชื่อมต่อข้อมูล...";
   statusEl.className="status";
+  checkedEl.textContent="ตรวจสอบล่าสุด: "+new Date().toLocaleString("th-TH");
 
   try{
     const response=await fetch("/price",{cache:"no-store"});
