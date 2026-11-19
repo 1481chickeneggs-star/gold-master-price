@@ -68,7 +68,7 @@ footer{color:#718095;font-size:12px;margin-top:24px;text-align:center;line-heigh
 
     <svg viewBox="0 0 340 95"
          style="width:100%;max-width:340px;height:auto;margin:8px auto 0;display:block;"
-         role="img" aria-label="Signature Saharat Chunjun">
+         role="img" aria-label="Signature Saharat Chumjun">
       <text x="170" y="52"
             text-anchor="middle"
             fill="#e8bd63"
@@ -76,7 +76,7 @@ footer{color:#718095;font-size:12px;margin-top:24px;text-align:center;line-heigh
             font-family="cursive"
             font-style="italic"
             letter-spacing="1">
-        Saharat Chunjun
+        Saharat Chumjun
       </text>
       <path d="M38 68 Q120 91 205 69 T302 66"
             fill="none"
