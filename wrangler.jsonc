@@ -1,6 +1,6 @@
 {
   "name": "gold-master-price",
-  "main": "worker.js",
+  "main": "worker-v2.2-test.js",
   "compatibility_date": "2026-11-19",
   "d1_databases": [
     {
