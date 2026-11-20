@@ -22,6 +22,66 @@ small,.muted{color:#9ba8b8}
 .error{color:#ff8585}
 button{background:#d6ad59;color:#101010;border:0;border-radius:8px;padding:13px 18px;font-weight:bold;margin-top:18px;font-size:15px}
 button:disabled{opacity:.6}
+.chart-divider{
+  border-top:1px solid #293747;
+  margin:24px 0 20px;
+}
+
+.chart-heading{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom:14px;
+}
+
+.chart-toolbar{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  flex-wrap:wrap;
+  margin-bottom:14px;
+}
+
+.tf-btn{
+  background:#101722;
+  color:#9ba8b8;
+  border:1px solid #354255;
+  border-radius:7px;
+  padding:10px 13px;
+  margin:0;
+  font-size:13px;
+  min-width:45px;
+  cursor:pointer;
+}
+
+.tf-btn.active{
+  background:#d6ad59;
+  color:#101010;
+  border-color:#d6ad59;
+}
+
+.chart-range{
+  background:#101722;
+  color:#eee;
+  border:1px solid #354255;
+  border-radius:7px;
+  padding:10px;
+  font-size:14px;
+}
+
+.chart-wrap{
+  width:100%;
+  height:300px;
+  position:relative;
+}
+
+.chart-wrap canvas{
+  width:100%;
+  height:100%;
+  display:block;
+}
 footer{color:#718095;font-size:12px;margin-top:24px;text-align:center;line-height:1.8}
 @media(max-width:420px){body{padding:14px}.panel{padding:17px}.grid{gap:9px}.box{padding:12px}}
 </style>
@@ -56,31 +116,51 @@ footer{color:#718095;font-size:12px;margin-top:24px;text-align:center;line-heigh
 <p class="muted" id="updated">รอข้อมูลราคา</p>
 <p class="muted" id="checked">ตรวจสอบล่าสุด: กำลังรอข้อมูล</p>
 <button id="refresh">อัปเดตราคา</button>
-</section>
-<section class="panel" id="chartPanel">
-  <div class="label">GOLD MASTER AI · CANDLESTICK CHART</div>
 
-  <div style="display:flex;gap:8px;flex-wrap:wrap;margin:15px 0;">
-    <select id="chartInterval">
-      <option value="1m">M1</option>
-      <option value="5m" selected>M5</option>
-      <option value="15m">M15</option>
-      <option value="30m">M30</option>
-      <option value="60m">H1</option>
-    </select>
+<div class="chart-divider"></div>
 
-    <select id="chartRange">
+<div id="chartPanel">
+
+  <div class="chart-heading">
+    <div class="label">GOLD MASTER AI · CANDLESTICK CHART</div>
+  </div>
+
+  <div class="chart-toolbar">
+
+    <button type="button" class="tf-btn"
+      data-interval="1m">M1</button>
+
+    <button type="button" class="tf-btn active"
+      data-interval="5m" aria-pressed="true">M5</button>
+
+    <button type="button" class="tf-btn"
+      data-interval="15m">M15</button>
+
+    <button type="button" class="tf-btn"
+      data-interval="30m">M30</button>
+
+    <button type="button" class="tf-btn"
+      data-interval="60m">H1</button>
+
+  </div>
+
+  <div style="margin-bottom:14px;">
+    <select id="chartRange" class="chart-range">
       <option value="1d" selected>1 วัน</option>
       <option value="5d">5 วัน</option>
       <option value="1mo">1 เดือน</option>
     </select>
   </div>
 
-  <div style="width:100%;height:300px;">
-    <canvas id="candleChart" style="width:100%;height:100%;"></canvas>
+  <div class="chart-wrap">
+    <canvas id="candleChart"></canvas>
   </div>
 
-  <p id="chartStatus" class="muted">กำลังเตรียมกราฟ...</p>
+  <p id="chartStatus" class="muted">
+    กำลังเตรียมกราฟ...
+  </p>
+
+</div>
 </section>
 <footer>
   GOLD MASTER AI · DATA SOURCE: XAUS<br>
@@ -139,30 +219,38 @@ function fmt(value,digits=2){
 }
 const chartCanvas=document.getElementById("candleChart");
 const chartCtx=chartCanvas.getContext("2d");
-const chartInterval=document.getElementById("chartInterval");
+const timeframeButtons=document.querySelectorAll("[data-interval]");
+let selectedInterval="5m";
 const chartRange=document.getElementById("chartRange");
 const chartStatus=document.getElementById("chartStatus");
 
 async function loadChart(){
   chartStatus.textContent="กำลังโหลดกราฟ...";
+
   try{
     const url="/chart?symbol=xau&range="+chartRange.value+
-      "&interval="+chartInterval.value;
+      "&interval="+selectedInterval;
+
     const response=await fetch(url,{cache:"no-store"});
-    if(!response.ok) throw new Error("HTTP "+response.status);
+
+    if(!response.ok)
+      throw new Error("HTTP "+response.status);
 
     const result=await response.json();
+
     if(!Array.isArray(result.points)||!result.points.length)
       throw new Error("ไม่มีข้อมูลแท่งเทียน");
 
     drawCandles(result.points);
-    chartStatus.textContent="กราฟพร้อมใช้งาน · "+result.interval+
-      " · "+result.points.length+" แท่ง";
+
+    chartStatus.textContent="กราฟพร้อมใช้งาน · "+
+      result.interval+" · "+result.points.length+" แท่ง";
+
   }catch(error){
-    chartStatus.textContent="โหลดกราฟไม่สำเร็จ: "+error.message;
+    chartStatus.textContent=
+      "โหลดกราฟไม่สำเร็จ: "+error.message;
   }
 }
-
 function drawCandles(points){
   const canvas=chartCanvas;
   const ctx=chartCtx;
@@ -233,9 +321,24 @@ function drawCandles(points){
   });
 }
 
-chartInterval.addEventListener("change",loadChart);
+timeframeButtons.forEach(button=>{
+  button.addEventListener("click",()=>{
+    selectedInterval=button.dataset.interval;
+
+    timeframeButtons.forEach(item=>{
+      const active=item===button;
+      item.classList.toggle("active",active);
+      item.setAttribute("aria-pressed",String(active));
+    });
+
+    loadChart();
+  });
+});
+
 chartRange.addEventListener("change",loadChart);
+
 window.addEventListener("resize",loadChart);
+
 loadChart();
 async function loadPrice(){
   refreshBtn.disabled=true;
