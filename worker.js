@@ -57,7 +57,31 @@ footer{color:#718095;font-size:12px;margin-top:24px;text-align:center;line-heigh
 <p class="muted" id="checked">ตรวจสอบล่าสุด: กำลังรอข้อมูล</p>
 <button id="refresh">อัปเดตราคา</button>
 </section>
+<section class="panel" id="chartPanel">
+  <div class="label">GOLD MASTER AI · CANDLESTICK CHART</div>
 
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin:15px 0;">
+    <select id="chartInterval">
+      <option value="1m">M1</option>
+      <option value="5m" selected>M5</option>
+      <option value="15m">M15</option>
+      <option value="30m">M30</option>
+      <option value="60m">H1</option>
+    </select>
+
+    <select id="chartRange">
+      <option value="1d" selected>1 วัน</option>
+      <option value="5d">5 วัน</option>
+      <option value="1mo">1 เดือน</option>
+    </select>
+  </div>
+
+  <div style="width:100%;height:300px;">
+    <canvas id="candleChart" style="width:100%;height:100%;"></canvas>
+  </div>
+
+  <p id="chartStatus" class="muted">กำลังเตรียมกราฟ...</p>
+</section>
 <footer>
   GOLD MASTER AI · DATA SOURCE: XAUS<br>
   ข้อมูลราคาเพื่อประกอบการศึกษา ไม่ใช่คำแนะนำการลงทุน
@@ -96,9 +120,6 @@ footer{color:#718095;font-size:12px;margin-top:24px;text-align:center;line-heigh
     </div>
   </div>
 </footer>
-GOLD MASTER AI · DATA SOURCE: XAUS<br>
-ข้อมูลราคาเพื่อประกอบการศึกษา ไม่ใช่คำแนะนำการลงทุน
-</footer>
 </main>
 
 <script>
@@ -116,7 +137,106 @@ function fmt(value,digits=2){
     ? n.toLocaleString("en-US",{minimumFractionDigits:digits,maximumFractionDigits:digits})
     : "--";
 }
+const chartCanvas=document.getElementById("candleChart");
+const chartCtx=chartCanvas.getContext("2d");
+const chartInterval=document.getElementById("chartInterval");
+const chartRange=document.getElementById("chartRange");
+const chartStatus=document.getElementById("chartStatus");
 
+async function loadChart(){
+  chartStatus.textContent="กำลังโหลดกราฟ...";
+  try{
+    const url="/chart?symbol=xau&range="+chartRange.value+
+      "&interval="+chartInterval.value;
+    const response=await fetch(url,{cache:"no-store"});
+    if(!response.ok) throw new Error("HTTP "+response.status);
+
+    const result=await response.json();
+    if(!Array.isArray(result.points)||!result.points.length)
+      throw new Error("ไม่มีข้อมูลแท่งเทียน");
+
+    drawCandles(result.points);
+    chartStatus.textContent="กราฟพร้อมใช้งาน · "+result.interval+
+      " · "+result.points.length+" แท่ง";
+  }catch(error){
+    chartStatus.textContent="โหลดกราฟไม่สำเร็จ: "+error.message;
+  }
+}
+
+function drawCandles(points){
+  const canvas=chartCanvas;
+  const ctx=chartCtx;
+  const w=canvas.clientWidth;
+  const h=canvas.clientHeight;
+  if(!w||!h)return;
+
+  const dpr=window.devicePixelRatio||1;
+  canvas.width=w*dpr;
+  canvas.height=h*dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+
+  ctx.fillStyle="#080d15";
+  ctx.fillRect(0,0,w,h);
+
+  const data=points.slice(-80);
+  const prices=data.flatMap(p=>[Number(p.h),Number(p.l)])
+    .filter(Number.isFinite);
+  if(!prices.length)return;
+
+  let min=Math.min(...prices);
+  let max=Math.max(...prices);
+  const pad=(max-min)*0.12||1;
+  min-=pad;
+  max+=pad;
+
+  const left=10,right=65,top=15,bottom=25;
+  const cw=w-left-right,ch=h-top-bottom;
+  const y=v=>top+(max-v)/(max-min)*ch;
+
+  ctx.font="10px Arial";
+  ctx.strokeStyle="#263344";
+  ctx.fillStyle="#9ba8b8";
+  ctx.lineWidth=1;
+
+  for(let i=0;i<=4;i++){
+    const py=top+ch*i/4;
+    const price=max-(max-min)*i/4;
+    ctx.beginPath();
+    ctx.moveTo(left,py);
+    ctx.lineTo(w-right,py);
+    ctx.stroke();
+    ctx.fillText(price.toFixed(2),w-right+5,py+3);
+  }
+
+  const step=cw/data.length;
+  const body=Math.max(2,step*0.65);
+
+  data.forEach((p,i)=>{
+    const o=Number(p.o),c=Number(p.c);
+    const hi=Number(p.h),lo=Number(p.l);
+    if(![o,c,hi,lo].every(Number.isFinite))return;
+
+    const x=left+step*(i+0.5);
+    const up=c>=o;
+    const color=up?"#19c784":"#ef5350";
+
+    ctx.strokeStyle=color;
+    ctx.fillStyle=color;
+    ctx.beginPath();
+    ctx.moveTo(x,y(hi));
+    ctx.lineTo(x,y(lo));
+    ctx.stroke();
+
+    const topBody=Math.min(y(o),y(c));
+    const bodyHeight=Math.max(1,Math.abs(y(o)-y(c)));
+    ctx.fillRect(x-body/2,topBody,body,bodyHeight);
+  });
+}
+
+chartInterval.addEventListener("change",loadChart);
+chartRange.addEventListener("change",loadChart);
+window.addEventListener("resize",loadChart);
+loadChart();
 async function loadPrice(){
   refreshBtn.disabled=true;
   statusEl.textContent="กำลังเชื่อมต่อข้อมูล...";
@@ -238,17 +358,19 @@ if (url.pathname === "/chart") {
   }
 }
     if (url.pathname !== "/price") {
-      return Response.json(
-        {
-          status: "online",
-          name: "GOLD MASTER AI",
-          endpoint: "/price"
-        },
-        { headers: cors }
-      );
+  return Response.json(
+    {
+      status: "error",
+      message: "Endpoint not found"
+    },
+    {
+      status: 404,
+      headers: cors
     }
+  );
+}
 
-    try {
+try {
       const response = await fetch(
         "https://xaus.com/api/v1/spot?compact=1",
         {
