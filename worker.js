@@ -199,7 +199,44 @@ export default {
         }
       });
     }
+if (url.pathname === "/chart") {
+  const symbol = url.searchParams.get("symbol") || "xau";
+  const range = url.searchParams.get("range") || "1d";
+  const interval = url.searchParams.get("interval") || "5m";
 
+  if (
+    symbol !== "xau" ||
+    !["1d", "5d", "1mo"].includes(range) ||
+    !["1m", "2m", "5m", "15m", "30m", "60m"].includes(interval)
+  ) {
+    return Response.json(
+      { status: "error", message: "Invalid chart parameters" },
+      { status: 400, headers: cors }
+    );
+  }
+
+  try {
+    const api = new URL("https://xaus.com/api/v1/chart");
+    api.search = new URLSearchParams({ symbol, range, interval });
+
+    const res = await fetch(api.toString());
+    const body = await res.text();
+
+    return new Response(body, {
+      status: res.status,
+      headers: {
+        ...cors,
+        "Content-Type": "application/json; charset=UTF-8",
+        "Cache-Control": "no-store"
+      }
+    });
+  } catch (error) {
+    return Response.json(
+      { status: "error", message: error.message },
+      { status: 502, headers: cors }
+    );
+  }
+}
     if (url.pathname !== "/price") {
       return Response.json(
         {
